@@ -1,9 +1,11 @@
 package com.sochupi.app.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.math.BigDecimal;
@@ -12,21 +14,28 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "transactions")
-@Data
+// No @Data — budget & user are LAZY. @Data's toString()/hashCode() touch ALL fields, so even
+// log.info("{}", tx) or hovering in the debugger fires extra SQL to load Budget + User (N+1).
+// Only call getBudget()/getUser() when you deliberately need them (e.g. mapToResponse).
+@Getter
+@Setter
 @NoArgsConstructor
-@AllArgsConstructor
+@ToString(onlyExplicitlyIncluded = true)
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Transaction {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @ToString.Include              // log shows "Transaction(id=42)" — no hidden SQL
+    @EqualsAndHashCode.Include     // HashSet/add won't lazy-load budget or user
     private Long id;
 
-    // Every transaction belongs to one budget (the month it counts against)
+    // LAZY: Hibernate loads Budget only when getBudget() is called — not on toString/hashCode
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "budget_id", nullable = false)
     private Budget budget;
 
-    // Denormalized link to user — makes "all my transactions" queries simple
+    // LAZY: same rule — avoid accidental access via logging or collections
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;

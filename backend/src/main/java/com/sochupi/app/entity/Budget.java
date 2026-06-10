@@ -1,9 +1,11 @@
 package com.sochupi.app.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -12,13 +14,19 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "budgets")
-@Data
+// No @Data — this entity has @ManyToOne User. @Data's toString/equals/hashCode include `user`,
+// which can lazy-load User from a log line or debugger hover. Identity = id only.
+@Getter
+@Setter
 @NoArgsConstructor
-@AllArgsConstructor
+@ToString(onlyExplicitlyIncluded = true)
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Budget {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @ToString.Include              // safe to log — won't fetch linked User
+    @EqualsAndHashCode.Include
     private Long id;
 
     // Relationship: Many Budgets can belong to One User

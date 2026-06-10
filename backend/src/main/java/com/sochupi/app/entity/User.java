@@ -1,23 +1,32 @@
 package com.sochupi.app.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 
-@Entity                          // Tells JPA: "This class maps to a database table"
-@Table(name = "users")           // Table name is "users", not "user" (reserved word in MySQL)
-@Data                            // Lombok: generates getters, setters, toString, equals, hashCode
-@NoArgsConstructor               // Lombok: generates empty constructor (JPA requires this)
-@AllArgsConstructor              // Lombok: generates constructor with all fields (useful for testing)
+@Entity
+@Table(name = "users")
+// No @Data on JPA entities — it generates equals/hashCode/toString over ALL fields.
+// Fine for simple classes, but risky once @ManyToOne/@OneToMany exist (lazy-load traps).
+// @Getter/@Setter: safe. @ToString + @EqualsAndHashCode: only include fields we mark below.
+@Getter
+@Setter
+@NoArgsConstructor
+@ToString(onlyExplicitlyIncluded = true)            // logs/debugger only print @ToString.Include fields
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)  // equals/hash only use @EqualsAndHashCode.Include fields
 public class User {
 
-    @Id                                                     // This field is the PRIMARY KEY
-    @GeneratedValue(strategy = GenerationType.IDENTITY)     // Auto-increment: MySQL handles ID generation
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @ToString.Include
+    @EqualsAndHashCode.Include   // entity identity = id (JPA best practice)
     private Long id;
 
     @Column(nullable = false, length = 100)                 // NOT NULL, max 100 characters
