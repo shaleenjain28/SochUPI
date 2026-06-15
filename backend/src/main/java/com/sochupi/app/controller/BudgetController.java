@@ -3,64 +3,60 @@ package com.sochupi.app.controller;
 import com.sochupi.app.dto.BudgetResponse;
 import com.sochupi.app.dto.CreateBudgetRequest;
 import com.sochupi.app.service.BudgetService;
+import com.sochupi.app.service.CustomUserDetails;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/budgets")    // All endpoints in this controller start with /api/budgets
+@RequestMapping("/api/budgets")
 @RequiredArgsConstructor
 public class BudgetController {
 
-    // Inject the service — controller NEVER talks to repository directly
     private final BudgetService budgetService;
 
     // ─────────────────────────────────────────────────────────
-    // POST /api/budgets?userId=1
+    // POST /api/budgets
     // ─────────────────────────────────────────────────────────
-    // Why @RequestParam for userId?
-    // Because later when we add JWT, the userId will come from the token.
-    // Using @RequestParam now makes it easy to swap out later without
-    // changing the request body structure.
+    // Notice how we removed @RequestParam Long userId!
+    // Now we use @AuthenticationPrincipal to automatically grab the user
+    // from the JWT token that was validated by our JwtAuthenticationFilter.
     @PostMapping
     public ResponseEntity<BudgetResponse> createBudget(
-            @RequestParam Long userId,
+            @AuthenticationPrincipal CustomUserDetails userDetails,
             @Valid @RequestBody CreateBudgetRequest request) {
 
-        BudgetResponse response = budgetService.createBudget(userId, request);
+        BudgetResponse response = budgetService.createBudget(userDetails.getId(), request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     // ─────────────────────────────────────────────────────────
-    // GET /api/budgets/user/{userId}
+    // GET /api/budgets
     // ─────────────────────────────────────────────────────────
-    // @PathVariable extracts the value from the URL itself
-    // e.g., GET /api/budgets/user/5 → userId = 5
-    @GetMapping("/user/{userId}")
-    public ResponseEntity<List<BudgetResponse>> getBudgetsByUser(
-            @PathVariable Long userId) {
+    // Instead of putting the ID in the URL (/user/1), the API is now smart
+    // enough to just return the budgets for "whoever is holding the token".
+    @GetMapping
+    public ResponseEntity<List<BudgetResponse>> getMyBudgets(
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
 
-        List<BudgetResponse> budgets = budgetService.getBudgetsByUser(userId);
-        return ResponseEntity.ok(budgets);  // 200 OK
+        List<BudgetResponse> budgets = budgetService.getBudgetsByUser(userDetails.getId());
+        return ResponseEntity.ok(budgets);
     }
 
     // ─────────────────────────────────────────────────────────
-    // PATCH /api/budgets/{budgetId}/lock?userId=1
+    // PATCH /api/budgets/{budgetId}/lock
     // ─────────────────────────────────────────────────────────
-    // Why PATCH and not PUT?
-    // PUT = replace the entire resource
-    // PATCH = modify a single field (isLocked in our case)
-    // Semantically, PATCH is the correct HTTP verb here.
     @PatchMapping("/{budgetId}/lock")
     public ResponseEntity<BudgetResponse> toggleLock(
             @PathVariable Long budgetId,
-            @RequestParam Long userId) {
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
 
-        BudgetResponse response = budgetService.toggleLock(budgetId, userId);
+        BudgetResponse response = budgetService.toggleLock(budgetId, userDetails.getId());
         return ResponseEntity.ok(response);
     }
 }
