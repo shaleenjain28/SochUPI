@@ -4,6 +4,9 @@ import com.sochupi.app.dto.BudgetResponse;
 import com.sochupi.app.dto.CreateBudgetRequest;
 import com.sochupi.app.entity.Budget;
 import com.sochupi.app.entity.User;
+import com.sochupi.app.exception.DuplicateResourceException;
+import com.sochupi.app.exception.ResourceNotFoundException;
+import com.sochupi.app.exception.UnauthorizedAccessException;
 import com.sochupi.app.repository.BudgetRepository;
 import com.sochupi.app.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -34,7 +37,7 @@ public class BudgetService {
         // Step 1: Does this user even exist?
         // .orElseThrow() → if the Optional is empty, throw an exception immediately
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
 
         // Step 2: One budget per user per month — enforce the rule!
         // We use the custom query method we just wrote in BudgetRepository
@@ -42,7 +45,7 @@ public class BudgetService {
                 .findByUserIdAndMonthAndYear(userId, req.month(), req.year());
 
         if (existingBudget.isPresent()) {
-            throw new RuntimeException(
+            throw new DuplicateResourceException(
                     "Budget already exists for " + req.month() + "/" + req.year()
             );
         }
@@ -77,7 +80,7 @@ public class BudgetService {
 
         // First verify the user exists (good practice — fail fast with a clear message)
         userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
 
         // Fetch all budgets, then convert each entity → DTO using our helper method
         // .stream() → turns the list into a pipeline we can transform
@@ -99,12 +102,12 @@ public class BudgetService {
 
         // Fetch the budget
         Budget budget = budgetRepository.findById(budgetId)
-                .orElseThrow(() -> new RuntimeException("Budget not found with id: " + budgetId));
+                .orElseThrow(() -> new ResourceNotFoundException("Budget not found with id: " + budgetId));
 
         // Security check: does this budget belong to this user?
         // Without this, any user could lock/unlock anyone else's budget!
         if (!budget.getUser().getId().equals(userId)) {
-            throw new RuntimeException("You don't have permission to modify this budget");
+            throw new UnauthorizedAccessException("You don't have permission to modify this budget");
         }
 
         // Flip the boolean: true → false, false → true
