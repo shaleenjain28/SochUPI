@@ -1,7 +1,7 @@
 package com.sochupi.app.controller;
 
-import com.sochupi.app.dto.AuthResponse;
-import com.sochupi.app.dto.LoginRequest;
+import com.sochupi.app.dto.request.LoginRequest;
+import com.sochupi.app.dto.response.AuthResponse;
 import com.sochupi.app.service.CustomUserDetailsService;
 import com.sochupi.app.service.JwtService;
 import jakarta.validation.Valid;

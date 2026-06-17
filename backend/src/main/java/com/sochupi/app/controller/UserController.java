@@ -1,7 +1,7 @@
 package com.sochupi.app.controller;
 
-import com.sochupi.app.dto.RegisterRequest;
-import com.sochupi.app.dto.UserResponse;
+import com.sochupi.app.dto.request.RegisterRequest;
+import com.sochupi.app.dto.response.UserResponse;
 import com.sochupi.app.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

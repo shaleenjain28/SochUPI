@@ -1,6 +1,6 @@
 package com.sochupi.app.exception;
 
-import com.sochupi.app.dto.ErrorResponse;
+import com.sochupi.app.dto.response.ErrorResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

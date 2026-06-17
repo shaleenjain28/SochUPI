@@ -1,7 +1,7 @@
 package com.sochupi.app.service;
 
-import com.sochupi.app.dto.RegisterRequest;
-import com.sochupi.app.dto.UserResponse;
+import com.sochupi.app.dto.request.RegisterRequest;
+import com.sochupi.app.dto.response.UserResponse;
 import com.sochupi.app.entity.User;
 import com.sochupi.app.exception.DuplicateResourceException;
 import com.sochupi.app.repository.UserRepository;

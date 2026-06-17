@@ -1,7 +1,7 @@
 package com.sochupi.app.controller;
 
-import com.sochupi.app.dto.BudgetResponse;
-import com.sochupi.app.dto.CreateBudgetRequest;
+import com.sochupi.app.dto.request.CreateBudgetRequest;
+import com.sochupi.app.dto.response.BudgetResponse;
 import com.sochupi.app.service.BudgetService;
 import com.sochupi.app.service.CustomUserDetails;
 import jakarta.validation.Valid;

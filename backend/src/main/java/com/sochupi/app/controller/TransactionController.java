@@ -1,8 +1,8 @@
 package com.sochupi.app.controller;
 
-import com.sochupi.app.dto.BudgetSpendSummary;
-import com.sochupi.app.dto.CreateTransactionRequest;
-import com.sochupi.app.dto.TransactionResponse;
+import com.sochupi.app.dto.request.CreateTransactionRequest;
+import com.sochupi.app.dto.response.BudgetSpendSummary;
+import com.sochupi.app.dto.response.TransactionResponse;
 import com.sochupi.app.entity.TransactionCategory;
 import com.sochupi.app.service.CustomUserDetails;
 import com.sochupi.app.service.TransactionService;

@@ -1,7 +1,7 @@
 package com.sochupi.app.service;
 
-import com.sochupi.app.dto.BudgetResponse;
-import com.sochupi.app.dto.CreateBudgetRequest;
+import com.sochupi.app.dto.request.CreateBudgetRequest;
+import com.sochupi.app.dto.response.BudgetResponse;
 import com.sochupi.app.entity.Budget;
 import com.sochupi.app.entity.User;
 import com.sochupi.app.exception.DuplicateResourceException;
