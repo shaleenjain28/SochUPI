@@ -3,6 +3,7 @@ package com.sochupi.app.service;
 import com.sochupi.app.dto.RegisterRequest;
 import com.sochupi.app.dto.UserResponse;
 import com.sochupi.app.entity.User;
+import com.sochupi.app.exception.DuplicateResourceException;
 import com.sochupi.app.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -22,7 +23,7 @@ public class UserService {
         // 1. Check if email exists
         Optional<User> existingUser = userRepository.findByEmail(req.email());
         if (existingUser.isPresent()) {
-            throw new RuntimeException("User already exists");
+            throw new DuplicateResourceException("User already exists with email: " + req.email());
         }
 
         // 2. Create the entity
@@ -30,7 +31,7 @@ public class UserService {
         newUser.setName(req.name());
         newUser.setEmail(req.email());
 
-        // TODO: We will replace this with real BCrypt hashing later!
+        // Hash the password using BCrypt
         String passwordHash = passwordEncoder.encode(req.password());
         newUser.setPasswordHash(passwordHash);
 
