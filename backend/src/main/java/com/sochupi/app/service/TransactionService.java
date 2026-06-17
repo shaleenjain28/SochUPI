@@ -7,6 +7,9 @@ import com.sochupi.app.entity.Budget;
 import com.sochupi.app.entity.Transaction;
 import com.sochupi.app.entity.TransactionCategory;
 import com.sochupi.app.entity.User;
+import com.sochupi.app.exception.BadRequestException;
+import com.sochupi.app.exception.ResourceNotFoundException;
+import com.sochupi.app.exception.UnauthorizedAccessException;
 import com.sochupi.app.repository.BudgetRepository;
 import com.sochupi.app.repository.TransactionRepository;
 import com.sochupi.app.repository.UserRepository;
@@ -32,22 +35,21 @@ public class TransactionService {
     public TransactionResponse addTransaction(Long userId, CreateTransactionRequest req) {
 
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
 
         Budget budget = budgetRepository.findById(req.budgetId())
-                .orElseThrow(() -> new RuntimeException("Budget not found with id: " + req.budgetId()));
+                .orElseThrow(() -> new ResourceNotFoundException("Budget not found with id: " + req.budgetId()));
 
         // Security: a user can only log spending against their own budget
         if (!budget.getUser().getId().equals(userId)) {
-            throw new RuntimeException("You don't have permission to use this budget");
+            throw new UnauthorizedAccessException("You don't have permission to use this budget");
         }
 
         // Domain rule: transaction must fall in the budget's month/year
         LocalDate date = req.transactionDate();
         if (date.getMonthValue() != budget.getMonth() || date.getYear() != budget.getYear()) {
-            throw new RuntimeException(
-                    "Transaction date must be within budget month " + budget.getMonth() + "/" + budget.getYear()
-            );
+            throw new BadRequestException(
+                    "Transaction date must be within budget month " + budget.getMonth() + "/" + budget.getYear());
         }
 
         Transaction transaction = new Transaction();
@@ -112,8 +114,7 @@ public class TransactionService {
                 budget.getTotalAmount(),
                 totalSpent,
                 remaining,
-                budget.getSavingsTarget()
-        );
+                budget.getSavingsTarget());
     }
 
     // ─────────────────────────────────────────────────────────
@@ -121,15 +122,15 @@ public class TransactionService {
     // ─────────────────────────────────────────────────────────
     private void verifyUserExists(Long userId) {
         userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
     }
 
     private Budget verifyBudgetOwnership(Long budgetId, Long userId) {
         Budget budget = budgetRepository.findById(budgetId)
-                .orElseThrow(() -> new RuntimeException("Budget not found with id: " + budgetId));
+                .orElseThrow(() -> new ResourceNotFoundException("Budget not found with id: " + budgetId));
 
         if (!budget.getUser().getId().equals(userId)) {
-            throw new RuntimeException("You don't have permission to access this budget");
+            throw new UnauthorizedAccessException("You don't have permission to access this budget");
         }
         return budget;
     }
@@ -149,7 +150,6 @@ public class TransactionService {
                 transaction.getDescription(),
                 transaction.getCategory(),
                 transaction.getTransactionDate(),
-                transaction.getCreatedAt()
-        );
+                transaction.getCreatedAt());
     }
 }
