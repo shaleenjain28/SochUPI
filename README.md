@@ -34,6 +34,7 @@ SochUPI is built with a highly scalable, enterprise-grade backend architecture:
 - [ ] Redis Caching for Dashboard Summaries
 - [ ] Composite Database Indexing
 - [ ] HikariCP Connection Pooling Tuning
+- [ ] Load Testing (JMeter)
 
 ## 🛠️ Tech Stack
 
