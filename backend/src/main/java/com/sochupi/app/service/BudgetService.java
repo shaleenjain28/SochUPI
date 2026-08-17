@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import org.springframework.cache.annotation.CacheEvict;
 
 @Service
 @RequiredArgsConstructor // Lombok generates a constructor injecting all 'final' fields
@@ -98,6 +99,8 @@ public class BudgetService {
     // Why toggle instead of "setLocked(true)"?
     // Because the user might want to unlock if they made a mistake
     // (as long as it's the same month — we can add time checks later)
+    // @CacheEvict: Changing the lock status changes the budget data, so we clear the cached summary.
+    @CacheEvict(value = "budgetSummary", key = "#budgetId")
     public BudgetResponse toggleLock(Long budgetId, Long userId) {
 
         // Fetch the budget
