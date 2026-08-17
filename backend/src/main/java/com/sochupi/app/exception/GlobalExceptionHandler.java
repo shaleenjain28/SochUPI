@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.time.LocalDateTime;
 import java.util.stream.Collectors;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 /**
  * ONE file to handle ALL exceptions from ALL controllers.
@@ -39,6 +40,16 @@ public class GlobalExceptionHandler {
             ResourceNotFoundException ex, HttpServletRequest request) {
 
         return buildErrorResponse(HttpStatus.NOT_FOUND, ex.getMessage(), request);
+    }
+
+    // ─── 404 Not Found (Invalid URL) ───
+    // Catches: NoResourceFoundException
+    // When: User hits a completely invalid endpoint (e.g., /api/does-not-exist)
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<ErrorResponse> handleNoResourceFound(
+            NoResourceFoundException ex, HttpServletRequest request) {
+
+        return buildErrorResponse(HttpStatus.NOT_FOUND, "Endpoint not found: " + request.getRequestURI(), request);
     }
 
     // ─── 409 Conflict ───
@@ -103,6 +114,9 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGenericException(
             Exception ex, HttpServletRequest request) {
+
+        // Print the hidden stack trace to the console for debugging!
+        ex.printStackTrace();
 
         return buildErrorResponse(
                 HttpStatus.INTERNAL_SERVER_ERROR,
