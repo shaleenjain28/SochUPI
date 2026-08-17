@@ -14,7 +14,15 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "transactions")
+@Table(name = "transactions", indexes = {
+        // Index 1: Speeds up findByUser_IdAndTransactionDateBetween()
+        // Used when the user filters their transaction history by date range.
+        @Index(name = "idx_txn_user_date", columnList = "user_id, transaction_date"),
+
+        // Index 2: Speeds up findByBudget_Id() and sumAmountByBudgetId()
+        // Used when loading all transactions for a specific budget (the spend summary).
+        @Index(name = "idx_txn_budget", columnList = "budget_id")
+})
 // ─── FIX #1: No @Data on JPA entities with @ManyToOne relationships ───
 // Transaction has TWO @ManyToOne links (user + budget).
 // @Data's toString() would try to print the User and Budget objects,
