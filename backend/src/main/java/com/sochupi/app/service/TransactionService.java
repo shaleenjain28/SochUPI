@@ -14,6 +14,8 @@ import com.sochupi.app.repository.BudgetRepository;
 import com.sochupi.app.repository.TransactionRepository;
 import com.sochupi.app.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -32,6 +34,10 @@ public class TransactionService {
     // ─────────────────────────────────────────────────────────
     // 1. ADD TRANSACTION
     // ─────────────────────────────────────────────────────────
+    // @CacheEvict: When a new transaction is added, the cached budget summary for that budget
+    // becomes stale (the totalSpent and remaining amounts have changed).
+    // This annotation DELETES the cached entry so the next summary request fetches fresh data.
+    @CacheEvict(value = "budgetSummary", key = "#req.budgetId()")
     public TransactionResponse addTransaction(Long userId, CreateTransactionRequest req) {
 
         User user = userRepository.findById(userId)
@@ -102,6 +108,11 @@ public class TransactionService {
     // ─────────────────────────────────────────────────────────
     // 3. BUDGET SPEND SUMMARY (remaining balance)
     // ─────────────────────────────────────────────────────────
+    // @Cacheable: Before running this method, Spring checks Redis for key "budgetSummary::7".
+    //   - CACHE HIT  → returns the cached BudgetSpendSummary instantly (0 SQL queries!).
+    //   - CACHE MISS → runs the method, stores the result in Redis, then returns it.
+    // The TTL (5 minutes) is configured in RedisConfig.java.
+    @Cacheable(value = "budgetSummary", key = "#budgetId")
     public BudgetSpendSummary getBudgetSpendSummary(Long budgetId, Long userId) {
 
         Budget budget = verifyBudgetOwnership(budgetId, userId);
