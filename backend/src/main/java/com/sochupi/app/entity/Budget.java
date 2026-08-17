@@ -13,7 +13,14 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "budgets")
+@Table(name = "budgets", indexes = {
+        // Composite Index: Speeds up findByUserIdAndMonthAndYear()
+        // Without this index: MySQL scans EVERY row in the budgets table to find a match.
+        // With this index: MySQL jumps directly to the correct row using a B-Tree lookup.
+        // Column order matters! (user_id first, then month, then year) because our queries
+        // always filter by user_id first, then narrow by month/year.
+        @Index(name = "idx_budget_user_month_year", columnList = "user_id, month, year")
+})
 // No @Data — this entity has @ManyToOne User. @Data's toString/equals/hashCode include `user`,
 // which can lazy-load User from a log line or debugger hover. Identity = id only.
 @Getter
